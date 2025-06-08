@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -14,39 +15,63 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock users for demo
-  const mockUsers = [
-    { id: 1, email: 'admin@pos.com', password: 'admin123', role: 'admin', name: 'Admin User' },
-    { id: 2, email: 'cashier@pos.com', password: 'cashier123', role: 'cashier', name: 'Cashier One' },
-    { id: 3, email: 'cashier2@pos.com', password: 'cashier123', role: 'cashier', name: 'Cashier Two' }
-  ];
-
   useEffect(() => {
-    // Check if user is already logged in
     const storedUser = sessionStorage.getItem('posUser');
-    if (storedUser) {
+    const storedToken = sessionStorage.getItem('posToken');
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    const foundUser = mockUsers.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const userData = { ...foundUser };
-      delete userData.password;
-      setUser(userData);
-      sessionStorage.setItem('posUser', JSON.stringify(userData));
-      return { success: true };
+    let endpoint = '';
+
+    if (email === 'admin@pos.com') {
+      endpoint = 'http://127.0.0.1:8000/api/admin/login';
+    } else {
+      endpoint = 'http://127.0.0.1:8000/api/cashier/login';
     }
-    
-    return { success: false, error: 'Invalid credentials' };
+
+    try {
+      const response = await axios.post(endpoint, { email, password });
+
+      const userData = response.data.user;
+      const token = response.data.token;
+
+      // Save in session storage
+      sessionStorage.setItem('posUser', JSON.stringify(userData));
+      sessionStorage.setItem('posToken', token);
+
+      // Set axios default auth header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      setUser(userData);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          'Login failed. Please check your credentials.',
+      };
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await axios.post('http://127.0.0.1:8000/api/logout');
+    } catch (e) {
+      console.error('Logout failed:', e);
+    }
+
     setUser(null);
     sessionStorage.removeItem('posUser');
+    sessionStorage.removeItem('posToken');
+    delete axios.defaults.headers.common['Authorization'];
   };
 
   const value = {
@@ -55,12 +80,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     loading,
     isAdmin: user?.role === 'admin',
-    isCashier: user?.role === 'cashier'
+    isCashier: user?.role === 'cashier',
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
