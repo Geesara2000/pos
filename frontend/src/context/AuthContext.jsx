@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { apiUrl } from '../common/http';
 
 const AuthContext = createContext();
 
@@ -29,9 +30,9 @@ export const AuthProvider = ({ children }) => {
     let endpoint = '';
 
     if (email === 'admin@pos.com') {
-      endpoint = 'http://127.0.0.1:8000/api/admin/login';
+      endpoint = apiUrl + 'admin/login';
     } else {
-      endpoint = 'http://127.0.0.1:8000/api/cashier/login';
+      endpoint = apiUrl + 'cashier/login';
     }
 
     try {
@@ -63,7 +64,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('http://127.0.0.1:8000/api/logout');
+      await axios.post(apiUrl + 'logout');
     } catch (e) {
       console.error('Logout failed:', e);
     }
