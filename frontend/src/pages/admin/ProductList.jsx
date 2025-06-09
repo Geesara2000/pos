@@ -12,11 +12,14 @@ const ProductList = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = products
+  .filter(product => product && product.name && product.barcode && product.category)
+  .filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.barcode.includes(searchTerm) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
 
   const handleEdit = (product) => {
     setEditingProduct(product);
@@ -73,7 +76,7 @@ const ProductList = () => {
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                ${product.price.toFixed(2)}
+                 ${Number(product.price).toFixed(2)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {product.quantity}

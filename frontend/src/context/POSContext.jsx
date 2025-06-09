@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { apiUrl } from '../common/http';
 
 const POSContext = createContext();
 
@@ -22,50 +24,114 @@ export const POSProvider = ({ children }) => {
 
   // Initialize with mock data
   useEffect(() => {
-    const mockProducts = [
-      { id: 1, name: 'iPhone 14', price: 999, quantity: 50, barcode: '123456789', category: 'Electronics', description: 'Latest iPhone model' },
-      { id: 2, name: 'Samsung Galaxy S23', price: 899, quantity: 30, barcode: '123456790', category: 'Electronics', description: 'Android flagship phone' },
-      { id: 3, name: 'MacBook Pro', price: 1999, quantity: 20, barcode: '123456791', category: 'Electronics', description: 'Professional laptop' },
-      { id: 4, name: 'AirPods Pro', price: 249, quantity: 100, barcode: '123456792', category: 'Electronics', description: 'Wireless earbuds' },
-      { id: 5, name: 'iPad Air', price: 599, quantity: 40, barcode: '123456793', category: 'Electronics', description: 'Tablet for work and play' }
-    ];
-
-    const mockUsers = [
-      { id: 2, name: 'Cashier One', email: 'cashier@pos.com', role: 'cashier', active: true },
-      { id: 3, name: 'Cashier Two', email: 'cashier2@pos.com', role: 'cashier', active: true }
-    ];
-
-    const mockTransactions = [
-      {
-        id: 1,
-        items: [{ id: 1, name: 'iPhone 14', price: 999, quantity: 1 }],
-        total: 1098.9,
-        tax: 99.9,
-        discount: 0,
-        cashierId: 2,
-        cashierName: 'Cashier One',
-        date: new Date().toISOString(),
-        paymentMethod: 'Cash'
-      }
-    ];
-
-    setProducts(mockProducts);
-    setUsers(mockUsers);
-    setTransactions(mockTransactions);
+      fetchProducts();
+      setUsers([
+        { id: 2, name: 'Cashier One', email: 'cashier@pos.com', role: 'cashier', active: true },
+        { id: 3, name: 'Cashier Two', email: 'cashier2@pos.com', role: 'cashier', active: true },
+      ]);
+      setTransactions([
+        {
+          id: 1,
+          items: [{ id: 1, name: 'iPhone 14', price: 999, quantity: 1 }],
+          total: 1098.9,
+          tax: 99.9,
+          discount: 0,
+          cashierId: 2,
+          cashierName: 'Cashier One',
+          date: new Date().toISOString(),
+          paymentMethod: 'Cash',
+        },
+      ]);
   }, []);
 
-  const addProduct = (product) => {
-    const newProduct = { ...product, id: Date.now() };
-    setProducts(prev => [...prev, newProduct]);
+  const fetchProducts = async () => {
+    try {
+      const token = sessionStorage.getItem('posToken');
+
+      const response = await axios.get(apiUrl + 'products', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      setProducts(response.data); // ✅ correct
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
   };
 
-  const updateProduct = (id, updatedProduct) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...updatedProduct, id } : p));
+
+  const addProduct = async (product) => {
+    try {
+      const token = sessionStorage.getItem('posToken');
+
+      const response = await axios.post(apiUrl + 'products/store', product, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      const newProduct = response.data.product;
+
+      if (newProduct && newProduct.name && newProduct.id) {
+        setProducts(prev => [...prev, newProduct]); 
+      } else {
+        console.warn('Invalid product data returned:', newProduct);
+      }
+
+    } catch (error) {
+      console.error('Error adding product:', error);
+      alert('Failed to add product. Please try again.');
+    }
   };
 
-  const deleteProduct = (id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+  const updateProduct = async (id, updatedProduct) => {
+    try {
+      const token = sessionStorage.getItem('posToken');
+
+      const response = await axios.post(apiUrl + `products/update/${id}`, updatedProduct, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      const updatedData = response.data.product || updatedProduct;
+
+      setProducts(prev =>
+        prev.map(p => (p.id === id ? { ...p, ...updatedData } : p))
+      );
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Failed to update product. Please try again.');
+    }
   };
+
+
+  const deleteProduct = async (id) => {
+    try {
+      const token = sessionStorage.getItem('posToken');
+
+      await axios.delete(apiUrl + `products/delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Update local state if delete is successful
+      setProducts(prev => prev.filter(product => product.id !== id));
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product. Please try again.');
+    }
+  };
+
 
   const addUser = (user) => {
     const newUser = { ...user, id: Date.now(), active: true };
