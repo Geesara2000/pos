@@ -25,10 +25,7 @@ export const POSProvider = ({ children }) => {
   // Initialize with mock data
   useEffect(() => {
       fetchProducts();
-      setUsers([
-        { id: 2, name: 'Cashier One', email: 'cashier@pos.com', role: 'cashier', active: true },
-        { id: 3, name: 'Cashier Two', email: 'cashier2@pos.com', role: 'cashier', active: true },
-      ]);
+      fetchCashiers();
       setTransactions([
         {
           id: 1,
@@ -130,18 +127,70 @@ export const POSProvider = ({ children }) => {
     }
   };
 
+  const fetchCashiers = async () => {
+    try {
+      const token = sessionStorage.getItem('posToken');
 
-  const addUser = (user) => {
-    const newUser = { ...user, id: Date.now(), active: true };
-    setUsers(prev => [...prev, newUser]);
+      const response = await axios.get(apiUrl + 'get/cashiers', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+
+      setUsers(response.data); // ✅ correct
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
   };
+
+  const addUser = async (user) => {
+    try {
+      const token = sessionStorage.getItem('posToken');
+
+      const response = await axios.post(apiUrl + 'register', user, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+
+      const newUser = response.data.user;
+
+      if (newUser && newUser.name && newUser.id) {
+        setUsers(prev => [...prev, newUser]);
+      } else {
+        console.warn('Invalid user data returned:', newUser);
+      }
+
+    } catch (error) {
+      console.error('Error adding user:', error);
+      alert('Failed to register user. Please check the form and try again.');
+    }
+  };
+
 
   const updateUser = (id, updatedUser) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...updatedUser, id } : u));
   };
 
-  const deleteUser = (id) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
+  const deleteUser = async (id) => {
+    try {
+      const token = sessionStorage.getItem('posToken');
+
+      await axios.delete(apiUrl + `delete/cashier/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+
+      // Update local state if delete is successful
+      setUsers(prev => prev.filter(user => user.id !== id));
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product. Please try again.');
+    }
   };
 
   const addToCart = (product) => {

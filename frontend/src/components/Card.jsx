@@ -1,6 +1,6 @@
-const Card = ({ children, className = '', title, subtitle }) => {
+const Card = ({ children, className = '', title, subtitle, ...props }) => {
   return (
-    <div className={`card ${className}`}>
+    <div className={`card ${className}`} {...props}>
       {(title || subtitle) && (
         <div className="mb-4">
           {title && <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>}

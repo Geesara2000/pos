@@ -36,7 +36,10 @@ const Inventory = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-blue-50 border-blue-200">
+        <Card
+          className="bg-blue-50 border-blue-200 cursor-pointer hover:shadow-md transition"
+          onClick={() => setFilterStatus('all')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-blue-600">Total Products</p>
@@ -46,7 +49,10 @@ const Inventory = () => {
           </div>
         </Card>
 
-        <Card className="bg-green-50 border-green-200">
+        <Card
+          className="bg-green-50 border-green-200 cursor-pointer hover:shadow-md transition"
+          onClick={() => setFilterStatus('in-stock')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-green-600">In Stock</p>
@@ -56,7 +62,11 @@ const Inventory = () => {
           </div>
         </Card>
 
-        <Card className="bg-yellow-50 border-yellow-200">
+
+        <Card
+          className="bg-yellow-50 border-yellow-200 cursor-pointer hover:shadow-md transition"
+          onClick={() => setFilterStatus('low-stock')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-yellow-600">Low Stock</p>
@@ -66,7 +76,11 @@ const Inventory = () => {
           </div>
         </Card>
 
-        <Card className="bg-red-50 border-red-200">
+        <Card
+          className="bg-red-50 border-red-200 cursor-pointer hover:shadow-md transition"
+          onClick={() => setFilterStatus('out-of-stock')}
+        >
+
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-red-600">Out of Stock</p>
@@ -105,14 +119,14 @@ const Inventory = () => {
         <Table headers={['Product', 'Barcode', 'Category', 'Quantity', 'Status', 'Value']}>
           {filteredProducts.map((product) => {
             const status = getStatusFilter(product);
-            const totalValue = product.price * product.quantity;
+            const totalValue = Number(product.price) * Number(product.quantity);
             
             return (
               <tr key={product.id} className="table-row">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                    <div className="text-sm text-gray-500">${product.price.toFixed(2)}</div>
+                    <div className="text-sm text-gray-500">${Number(product.price).toFixed(2)}</div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -145,7 +159,7 @@ const Inventory = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${totalValue.toFixed(2)}
+                  ${Number(totalValue).toFixed(2)}
                 </td>
               </tr>
             );

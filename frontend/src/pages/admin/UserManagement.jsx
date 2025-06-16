@@ -12,8 +12,11 @@ const UserManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
+    password_confirmation: '',
     role: 'cashier'
   });
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -173,20 +176,19 @@ const UserManagement = () => {
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-              Role *
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password *
             </label>
-            <select
-              id="role"
-              name="role"
-              required
-              value={formData.role}
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required={!editingUser} // Only required when adding
+              value={formData.password || ''}
               onChange={handleChange}
               className="input-field"
-            >
-              <option value="cashier">Cashier</option>
-              <option value="admin">Admin</option>
-            </select>
+              placeholder="Enter password"
+            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
