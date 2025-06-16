@@ -13,6 +13,7 @@ class product extends Model
         'quantity',
         'barcode',
         'category',
+        'image'
     ];
 
 }

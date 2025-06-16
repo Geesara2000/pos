@@ -1,35 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePOS } from '../../context/POSContext';
+
 
 const ProductForm = ({ product, onClose }) => {
   const { addProduct, updateProduct } = usePOS();
+
   const [formData, setFormData] = useState({
     name: product?.name || '',
     price: product?.price || '',
     quantity: product?.quantity || '',
     barcode: product?.barcode || '',
     category: product?.category || '',
-    description: product?.description || ''
+    description: product?.description || '',
+    image: null // for new file input
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    const productData = {
-      ...formData,
-      price: parseFloat(formData.price),
-      quantity: parseInt(formData.quantity)
-    };
+  const [previewImage, setPreviewImage] = useState(
+    product?.image ? `http://127.0.0.1:8000${product.image}` : '/default_product.png'
+  );
 
-    if (product) {
-      updateProduct(product.id, productData);
-    } else {
-      addProduct(productData);
-    }
-
-    onClose();
-  };
-
+  // handle text input change
   const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -37,9 +27,63 @@ const ProductForm = ({ product, onClose }) => {
     }));
   };
 
+  // handle file input change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, image: file }));
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
+  // handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('price', parseFloat(formData.price));
+    data.append('quantity', parseInt(formData.quantity));
+    data.append('barcode', formData.barcode);
+    data.append('category', formData.category);
+    data.append('description', formData.description);
+    if (formData.image) {
+      data.append('image', formData.image);
+    }
+
+    if (product) {
+      updateProduct(product.id, data);
+    } else {
+      addProduct(data);
+    }
+
+    onClose();
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Image Upload and Preview */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Product Image
+          </label>
+          <div className="flex items-center space-x-4">
+            <img
+              src={previewImage}
+              alt="Product Preview"
+              className="w-24 h-24 object-cover border rounded"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-sm text-gray-500"
+            />
+          </div>
+        </div>
+
+        {/* Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Product Name *
@@ -56,6 +100,7 @@ const ProductForm = ({ product, onClose }) => {
           />
         </div>
 
+        {/* Category */}
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
             Category *
@@ -72,6 +117,7 @@ const ProductForm = ({ product, onClose }) => {
           />
         </div>
 
+        {/* Price */}
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
             Price *
@@ -90,6 +136,7 @@ const ProductForm = ({ product, onClose }) => {
           />
         </div>
 
+        {/* Quantity */}
         <div>
           <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
             Quantity *
@@ -107,6 +154,7 @@ const ProductForm = ({ product, onClose }) => {
           />
         </div>
 
+        {/* Barcode */}
         <div className="md:col-span-2">
           <label htmlFor="barcode" className="block text-sm font-medium text-gray-700 mb-1">
             Barcode *
@@ -123,6 +171,7 @@ const ProductForm = ({ product, onClose }) => {
           />
         </div>
 
+        {/* Description */}
         <div className="md:col-span-2">
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
             Description
@@ -139,6 +188,7 @@ const ProductForm = ({ product, onClose }) => {
         </div>
       </div>
 
+      {/* Form buttons */}
       <div className="flex justify-end space-x-3 pt-4">
         <button
           type="button"
