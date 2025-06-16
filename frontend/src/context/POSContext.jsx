@@ -70,7 +70,6 @@ export const POSProvider = ({ children }) => {
       const response = await axios.post(apiUrl + 'products/store', product, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
           Accept: 'application/json',
         },
       });
@@ -96,7 +95,6 @@ export const POSProvider = ({ children }) => {
       const response = await axios.post(apiUrl + `products/update/${id}`, updatedProduct, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
           Accept: 'application/json',
         },
       });
@@ -120,7 +118,7 @@ export const POSProvider = ({ children }) => {
       await axios.delete(apiUrl + `products/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
       });
 

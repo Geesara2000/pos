@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -24,7 +26,14 @@ class ProductController extends Controller
             'quantity' => 'required|integer',
             'barcode' => 'required|string|unique:products',
             'category' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // max 2MB
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+            $validated['image'] = $imagePath ? '/storage/' . $imagePath : null;
+        }
 
         $product = Product::create($validated);
 
@@ -33,6 +42,7 @@ class ProductController extends Controller
             'product' => $product
         ], 201);
     }
+
 
     // Show a single product
     public function show($id)
@@ -62,7 +72,19 @@ class ProductController extends Controller
             'quantity' => 'sometimes|required|integer',
             'barcode' => 'sometimes|required|string|unique:products,barcode,' . $id,
             'category' => 'sometimes|required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        if ($request->hasFile('image')) {
+            // Delete the old image if exists
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            // Store the new image
+            $imagePath = $request->file('image')->store('products', 'public');
+            $validated['image'] = '/storage/' . $imagePath;
+        }
 
         $product->update($validated);
 

@@ -5,6 +5,7 @@ import Table from '../../components/Table';
 import Modal from '../../components/Modal';
 import ProductForm from './ProductForm';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { imageUrl } from '../../common/http';
 
 const ProductList = () => {
   const { products, deleteProduct } = usePOS();
@@ -65,10 +66,21 @@ const ProductList = () => {
         </div>
 
         <Table
-          headers={['Name', 'Price', 'Quantity', 'Barcode', 'Category', 'Status', 'Actions']}
+          headers={['Image','Name', 'Price', 'Quantity', 'Barcode', 'Category', 'Status', 'Actions']}
         >
           {filteredProducts.map((product) => (
             <tr key={product.id} className="table-row">
+              <td className="px-6 py-4 whitespace-nowrap">
+                {product.image ? (
+                  <img
+                    src={`${imageUrl + product.image}`}
+                    alt={product.name}
+                    className="w-16 h-16 object-cover rounded-md border"
+                  />
+                ) : (
+                  <span className="text-sm text-gray-500">No Image</span>
+                )}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div>
                   <div className="text-sm font-medium text-gray-900">{product.name}</div>
